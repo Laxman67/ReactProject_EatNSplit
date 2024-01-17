@@ -1,3 +1,5 @@
+import { useState } from "react";
+
 const initialFriends = [
   {
     id: 118836,
@@ -19,37 +21,63 @@ const initialFriends = [
   },
 ];
 
+function Button({ children, onClick }) {
+  return (
+    <>
+      <button className="button" onClick={onClick}>
+        {children}
+      </button>
+    </>
+  );
+}
+
 function App() {
+  const [friends, setFriends] = useState(initialFriends);
+  const [showAddForm, setShowAddForm] = useState(false);
+  function handleClick() {
+    setShowAddForm((s) => !s);
+  }
+
+  function handleAddFriend(friend) {
+    setFriends((friends) => [...friends, friend]);
+    setShowAddForm(false);
+  }
   return (
     <div className="app">
       <div className="sidebar">
-        <FriendsList />
-        <FormAddFriend />
-        <Button>Add Friend</Button>
+        <FriendsList friends={friends} />
+
+        {/* Diplsay add form only when state is true  */}
+        {showAddForm && <FormAddFriend onAddFriends={handleAddFriend} />}
+        <Button onClick={handleClick}>
+          {showAddForm ? "Close" : "Add Friend"}
+        </Button>
       </div>
       <FormSplitBill />
     </div>
   );
 }
-function FriendsList() {
-  const friends = initialFriends;
-
+function FriendsList({ friends }) {
   return (
-    <>
-      <ul>
-        {friends.map((friend) => (
-          <Friend friend={friend} key={friend.id} />
-        ))}
-      </ul>
-    </>
+    <ul>
+      {friends.map((friend) => (
+        <Friend friend={friend} key={friend.id} />
+      ))}
+    </ul>
   );
 }
 function Friend({ friend }) {
   return (
     <>
       <li>
+        {/* Image  */}
         <img src={friend.image} alt={friend.name} />
+
+        {/* Heading of Name  */}
         <h3>{friend.name}</h3>
+
+        {/* BALANCE BASED ON CONTION WITH CLASS */}
+
         {/* if balance is less than 0 */}
         {friend.balance < 0 && (
           <p className="red">
@@ -66,7 +94,7 @@ function Friend({ friend }) {
         )}
 
         {/* if balance == 0 */}
-        {friend.balance === 0 && <p>You and {friend.name} are even $</p>}
+        {friend.balance === 0 && <p>You and {friend.name} are even </p>}
 
         <Button>Select</Button>
       </li>
@@ -74,21 +102,47 @@ function Friend({ friend }) {
   );
 }
 
-function Button({ children }) {
+function FormAddFriend({ onAddFriends }) {
+  const [name, setName] = useState("");
+  const [image, setImage] = useState("https://i.pravatar.cc/48");
+
+  function handleSubmit(e) {
+    e.preventDefault();
+
+    if (!name || !image) return;
+
+    const id = crypto.randomUUID();
+
+    // An Object of New User
+    const newFriend = {
+      id,
+      name,
+      image: `${image}?=${id}`,
+      balance: 0,
+    };
+
+    // Set to friends Array
+    onAddFriends(newFriend);
+
+    setName("");
+    setImage("https://i.pravatar.cc/48");
+  }
+
   return (
-    <>
-      <button className="button"> {children}</button>
-    </>
-  );
-}
-function FormAddFriend() {
-  return (
-    <form className="form-add-friend">
+    <form className="form-add-friend" onSubmit={handleSubmit}>
       <label> 🧑‍🤝‍🧑Friend Name</label>
-      <input type="text"></input>
+      <input
+        type="text"
+        value={name}
+        onChange={(e) => setName(e.target.value)}
+      ></input>
 
       <label> 🖼️Image URL</label>
-      <input type="text"></input>
+      <input
+        type="text"
+        value={image}
+        onChange={(e) => setName(e.target.value)}
+      ></input>
       <Button>Add</Button>
     </form>
   );
